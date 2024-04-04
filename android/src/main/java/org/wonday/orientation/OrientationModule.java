@@ -48,6 +48,10 @@ public class OrientationModule extends ReactContextBaseJavaModule implements Ori
     private String lastOrientationValue = "";
     private String lastDeviceOrientationValue = "";
 
+    private int defaultRequestedOrientation = ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR;
+
+    private boolean defaultRequestedOrientationInitilized = false;
+
     public OrientationModule(ReactApplicationContext reactContext) {
         super(reactContext);
         ctx = reactContext;
@@ -57,7 +61,7 @@ public class OrientationModule extends ReactContextBaseJavaModule implements Ori
             @Override
             public void onOrientationChanged(int orientation) {
 
-                FLog.d(ReactConstants.TAG,"DeviceOrientation changed to " + orientation);
+                FLog.d(ReactConstants.TAG, "DeviceOrientation changed to " + orientation);
 
                 String deviceOrientationValue = lastDeviceOrientationValue;
 
@@ -82,8 +86,8 @@ public class OrientationModule extends ReactContextBaseJavaModule implements Ori
                     params.putString("deviceOrientation", deviceOrientationValue);
                     if (ctx.hasActiveCatalystInstance()) {
                         ctx
-                        .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
-                        .emit("deviceOrientationDidChange", params);
+                                .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+                                .emit("deviceOrientationDidChange", params);
                     }
                 }
 
@@ -91,14 +95,14 @@ public class OrientationModule extends ReactContextBaseJavaModule implements Ori
                 if (!lastOrientationValue.equals(orientationValue)) {
                     lastOrientationValue = orientationValue;
 
-                    FLog.d(ReactConstants.TAG,"Orientation changed to " + orientationValue);
+                    FLog.d(ReactConstants.TAG, "Orientation changed to " + orientationValue);
 
                     WritableMap params = Arguments.createMap();
                     params.putString("orientation", orientationValue);
                     if (ctx.hasActiveCatalystInstance()) {
                         ctx
-                        .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
-                        .emit("orientationDidChange", params);
+                                .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+                                .emit("orientationDidChange", params);
                     }
                 }
 
@@ -107,11 +111,11 @@ public class OrientationModule extends ReactContextBaseJavaModule implements Ori
         };
 
         if (mOrientationListener.canDetectOrientation()) {
-           FLog.d(ReactConstants.TAG, "orientation detect enabled.");
-           mOrientationListener.enable();
+            FLog.d(ReactConstants.TAG, "orientation detect enabled.");
+            mOrientationListener.enable();
         } else {
-           FLog.d(ReactConstants.TAG, "orientation detect disabled.");
-           mOrientationListener.disable();
+            FLog.d(ReactConstants.TAG, "orientation detect disabled.");
+            mOrientationListener.disable();
         }
 
         mReceiver = new BroadcastReceiver() {
@@ -121,14 +125,14 @@ public class OrientationModule extends ReactContextBaseJavaModule implements Ori
                 String orientationValue = getCurrentOrientation();
                 lastOrientationValue = orientationValue;
 
-                FLog.d(ReactConstants.TAG,"Orientation changed to " + orientationValue);
+                FLog.d(ReactConstants.TAG, "Orientation changed to " + orientationValue);
 
                 WritableMap params = Arguments.createMap();
                 params.putString("orientation", orientationValue);
                 if (ctx.hasActiveCatalystInstance()) {
                     ctx
-                    .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
-                    .emit("orientationDidChange", params);
+                            .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+                            .emit("orientationDidChange", params);
                 }
 
             }
@@ -171,9 +175,9 @@ public class OrientationModule extends ReactContextBaseJavaModule implements Ori
 
     @ReactMethod
     public void lockToPortrait() {
-        final Activity activity = getCurrentActivity();
-        if (activity == null) return;
-        activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        final boolean result = setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        if (!result) return;
+
         isLocked = true;
 
         // force send an UI orientation event
@@ -182,8 +186,8 @@ public class OrientationModule extends ReactContextBaseJavaModule implements Ori
         params.putString("orientation", lastOrientationValue);
         if (ctx.hasActiveCatalystInstance()) {
             ctx
-            .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
-            .emit("orientationDidChange", params);
+                    .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+                    .emit("orientationDidChange", params);
         }
 
         // send a locked event
@@ -191,16 +195,16 @@ public class OrientationModule extends ReactContextBaseJavaModule implements Ori
         lockParams.putString("orientation", lastOrientationValue);
         if (ctx.hasActiveCatalystInstance()) {
             ctx
-            .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
-            .emit("lockDidChange", lockParams);
+                    .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+                    .emit("lockDidChange", lockParams);
         }
     }
 
     @ReactMethod
     public void lockToPortraitUpsideDown() {
-        final Activity activity = getCurrentActivity();
-        if (activity == null) return;
-        activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT);
+        final boolean result = setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT);
+        if (!result) return;
+
         isLocked = true;
 
         // force send an UI orientation event
@@ -209,8 +213,8 @@ public class OrientationModule extends ReactContextBaseJavaModule implements Ori
         params.putString("orientation", lastOrientationValue);
         if (ctx.hasActiveCatalystInstance()) {
             ctx
-            .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
-            .emit("orientationDidChange", params);
+                    .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+                    .emit("orientationDidChange", params);
         }
 
         // send a locked event
@@ -218,16 +222,16 @@ public class OrientationModule extends ReactContextBaseJavaModule implements Ori
         lockParams.putString("orientation", lastOrientationValue);
         if (ctx.hasActiveCatalystInstance()) {
             ctx
-            .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
-            .emit("lockDidChange", lockParams);
+                    .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+                    .emit("lockDidChange", lockParams);
         }
     }
 
     @ReactMethod
     public void lockToLandscape() {
-        final Activity activity = getCurrentActivity();
-        if (activity == null) return;
-        activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
+        final boolean result = setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
+        if (!result) return;
+
         isLocked = true;
 
         // force send an UI orientation event
@@ -236,8 +240,8 @@ public class OrientationModule extends ReactContextBaseJavaModule implements Ori
         params.putString("orientation", lastOrientationValue);
         if (ctx.hasActiveCatalystInstance()) {
             ctx
-            .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
-            .emit("orientationDidChange", params);
+                    .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+                    .emit("orientationDidChange", params);
         }
 
         // send a locked event
@@ -245,16 +249,16 @@ public class OrientationModule extends ReactContextBaseJavaModule implements Ori
         lockParams.putString("orientation", lastOrientationValue);
         if (ctx.hasActiveCatalystInstance()) {
             ctx
-            .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
-            .emit("lockDidChange", lockParams);
+                    .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+                    .emit("lockDidChange", lockParams);
         }
     }
 
     @ReactMethod
     public void lockToLandscapeLeft() {
-        final Activity activity = getCurrentActivity();
-        if (activity == null) return;
-        activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+        final boolean result = setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+        if (!result) return;
+
         isLocked = true;
 
         // force send an UI orientation event
@@ -263,8 +267,8 @@ public class OrientationModule extends ReactContextBaseJavaModule implements Ori
         params.putString("orientation", lastOrientationValue);
         if (ctx.hasActiveCatalystInstance()) {
             ctx
-            .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
-            .emit("orientationDidChange", params);
+                    .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+                    .emit("orientationDidChange", params);
         }
 
         // send a locked event
@@ -272,16 +276,16 @@ public class OrientationModule extends ReactContextBaseJavaModule implements Ori
         lockParams.putString("orientation", lastOrientationValue);
         if (ctx.hasActiveCatalystInstance()) {
             ctx
-            .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
-            .emit("lockDidChange", lockParams);
+                    .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+                    .emit("lockDidChange", lockParams);
         }
     }
 
     @ReactMethod
     public void lockToLandscapeRight() {
-        final Activity activity = getCurrentActivity();
-        if (activity == null) return;
-        activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE);
+        final boolean result = setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE);
+        if (!result) return;
+
         isLocked = true;
 
         // force send an UI orientation event
@@ -290,8 +294,8 @@ public class OrientationModule extends ReactContextBaseJavaModule implements Ori
         params.putString("orientation", lastOrientationValue);
         if (ctx.hasActiveCatalystInstance()) {
             ctx
-            .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
-            .emit("orientationDidChange", params);
+                    .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+                    .emit("orientationDidChange", params);
         }
 
         // send a locked event
@@ -299,17 +303,16 @@ public class OrientationModule extends ReactContextBaseJavaModule implements Ori
         lockParams.putString("orientation", lastOrientationValue);
         if (ctx.hasActiveCatalystInstance()) {
             ctx
-            .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
-            .emit("lockDidChange", lockParams);
+                    .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+                    .emit("lockDidChange", lockParams);
         }
     }
 
     @ReactMethod
     public void unlockAllOrientations() {
+        final boolean result = setDefaultRequestedOrientation();
+        if (!result) return;
 
-        final Activity activity = getCurrentActivity();
-        if (activity == null) return;
-        activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR);
         isLocked = false;
 
         //force send an UI orientation event when unlock
@@ -318,8 +321,8 @@ public class OrientationModule extends ReactContextBaseJavaModule implements Ori
         params.putString("orientation", lastOrientationValue);
         if (ctx.hasActiveCatalystInstance()) {
             ctx
-            .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
-            .emit("orientationDidChange", params);
+                    .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+                    .emit("orientationDidChange", params);
         }
 
         // send a unlocked event
@@ -327,18 +330,18 @@ public class OrientationModule extends ReactContextBaseJavaModule implements Ori
         lockParams.putString("orientation", "UNKNOWN");
         if (ctx.hasActiveCatalystInstance()) {
             ctx
-            .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
-            .emit("lockDidChange", lockParams);
+                    .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+                    .emit("lockDidChange", lockParams);
         }
     }
 
     @ReactMethod
     public void getAutoRotateState(Callback callback) {
-      final ContentResolver resolver = ctx.getContentResolver();
-      boolean rotateLock = android.provider.Settings.System.getInt(
-      resolver,
-      android.provider.Settings.System.ACCELEROMETER_ROTATION, 0) == 1;
-      callback.invoke(rotateLock);
+        final ContentResolver resolver = ctx.getContentResolver();
+        boolean rotateLock = android.provider.Settings.System.getInt(
+                resolver,
+                android.provider.Settings.System.ACCELEROMETER_ROTATION, 0) == 1;
+        callback.invoke(rotateLock);
     }
 
     @Override
@@ -369,7 +372,7 @@ public class OrientationModule extends ReactContextBaseJavaModule implements Ori
                 isConfigurationChangeReceiverRegistered = false;
             }
         } catch (Exception e) {
-           FLog.w(ReactConstants.TAG, "Receiver already unregistered", e);
+            FLog.w(ReactConstants.TAG, "Receiver already unregistered", e);
         }
     }
 
@@ -380,43 +383,71 @@ public class OrientationModule extends ReactContextBaseJavaModule implements Ori
 
         final Activity activity = getCurrentActivity();
         if (activity == null) return;
-        try
-        {
+        try {
             if (isConfigurationChangeReceiverRegistered) {
                 activity.unregisterReceiver(mReceiver);
                 isConfigurationChangeReceiverRegistered = false;
             }
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             FLog.w(ReactConstants.TAG, "Receiver already unregistered", e);
         }
     }
 
     @ReactMethod
     public void addListener(String eventName) {
-     // Keep: Required for RN built in Event Emitter Calls.
+        // Keep: Required for RN built in Event Emitter Calls.
     }
 
     @ReactMethod
     public void removeListeners(Integer count) {
-     // Keep: Required for RN built in Event Emitter Calls.
+        // Keep: Required for RN built in Event Emitter Calls.
     }
 
     /**
-   * Starting with Android 14, apps and services that target Android 14 and use context-registered
-   * receivers are required to specify a flag to indicate whether or not the receiver should be
-   * exported to all other apps on the device: either RECEIVER_EXPORTED or RECEIVER_NOT_EXPORTED
-   *
-   * <p>https://developer.android.com/about/versions/14/behavior-changes-14#runtime-receivers-exported
-   */
+     * Starting with Android 14, apps and services that target Android 14 and use context-registered
+     * receivers are required to specify a flag to indicate whether or not the receiver should be
+     * exported to all other apps on the device: either RECEIVER_EXPORTED or RECEIVER_NOT_EXPORTED
+     *
+     * <p>https://developer.android.com/about/versions/14/behavior-changes-14#runtime-receivers-exported
+     */
     private void compatRegisterReceiver(
-        Context context, BroadcastReceiver receiver, IntentFilter filter, boolean exported) {
+            Context context, BroadcastReceiver receiver, IntentFilter filter, boolean exported) {
         if (Build.VERSION.SDK_INT >= 34 && context.getApplicationInfo().targetSdkVersion >= 34) {
-        context.registerReceiver(
-            receiver, filter, exported ? Context.RECEIVER_EXPORTED : Context.RECEIVER_NOT_EXPORTED);
+            context.registerReceiver(
+                    receiver, filter, exported ? Context.RECEIVER_EXPORTED : Context.RECEIVER_NOT_EXPORTED);
         } else {
-        context.registerReceiver(receiver, filter);
+            context.registerReceiver(receiver, filter);
         }
+    }
+
+    private boolean setRequestedOrientation(int requestedOrientation) {
+        final Activity activity = getCurrentActivity();
+
+        if (activity == null) return false;
+
+        if (!defaultRequestedOrientationInitilized) {
+            defaultRequestedOrientation = activity.getRequestedOrientation();
+            defaultRequestedOrientationInitilized = true;
+        }
+
+        activity.setRequestedOrientation(requestedOrientation);
+
+        return true;
+    }
+
+    private boolean setDefaultRequestedOrientation() {
+        final Activity activity = getCurrentActivity();
+
+        if (activity == null) return false;
+
+        if (!defaultRequestedOrientationInitilized) {
+            defaultRequestedOrientation = activity.getRequestedOrientation();
+            defaultRequestedOrientationInitilized = true;
+        }
+
+        activity.setRequestedOrientation(defaultRequestedOrientation);
+
+        return true;
     }
 }
 
